@@ -165,11 +165,17 @@ bool Parser::makeAssignment(std::string str)
 			// Checking if the assignment is towards another already existing variable
 			if (isExistingVar(variableValue))
 			{
-				// Checking if the assigning name already exists
-				if (isExistingVar(variableName))
+				// Checking if the assigning name already exists (deleting its value) and isn't self assigning
+				if (isExistingVar(variableName) && variableName != variableValue)
 				{
 					delete _variables.at(variableName);
 					_variables.erase(variableName);
+				}
+
+				// Self assignment
+				if (isExistingVar(variableName) && variableName == variableValue)
+				{
+					return true;
 				}
 
 				variable = getVariableValue(variableValue);
