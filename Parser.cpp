@@ -15,6 +15,8 @@ Type* Parser::parseString(std::string str)
 		throw IndentationException();
 	}
 
+	type = getVariableValue(str);
+
 	type = getType(str);
 	if (!type)
 	{
@@ -171,7 +173,7 @@ bool Parser::makeAssignment(std::string str)
 			_variables.at(variableName) = variableType;
 		}
 
-		// The variable assignment was a sucess
+		// The variable assignment was a success
 		isAssignment = true;
 	}
 
@@ -180,7 +182,20 @@ bool Parser::makeAssignment(std::string str)
 
 Type* Parser::getVariableValue(std::string str)
 {
-	return nullptr;
+	Type* variable = nullptr;
+
+	// Variable already exists
+	if (_variables.find(str) != _variables.end())
+	{
+		variable = _variables.at(str);
+	}
+
+	else
+	{
+		throw NameErrorException(str);
+	}
+
+	return variable;
 }
 
 
