@@ -8,7 +8,7 @@ public:
 	Void();
 
 	bool isPrintable() const override;
-	std::string toString() const override;
 
 private:
+	std::string toString() const override;
 };

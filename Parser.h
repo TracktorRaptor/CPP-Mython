@@ -27,5 +27,6 @@ private:
 
     static bool isLegalVarName(std::string str);
     static bool makeAssignment(std::string str);
+    static bool isExistingVar(std::string str);
     static Type* getVariableValue(std::string str);
 };

@@ -14,7 +14,7 @@ std::unordered_map<std::string, Type*> Parser::_variables;
 
 int main(int argc,char **argv)
 {
-	cout << WELCOME << YOUR_NAME << " :D" << endl;
+	cout << WELCOME << YOUR_NAME << " :D\n" << endl;
 
 	std::string input_string = "";
 	Type* type = nullptr;

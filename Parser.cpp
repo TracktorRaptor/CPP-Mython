@@ -40,33 +40,32 @@ Type* Parser::parseString(std::string str)
 
 Type* Parser::getType(std::string str)
 {
-	std::string strCopy = str;
-	Helper::trim(strCopy);
+	Helper::trim(str);
 
-	if (Helper::isInteger(strCopy))
+	if (Helper::isInteger(str))
 	{
-		Helper::removeLeadingZeros(strCopy);
-		Integer* intNumber = new Integer(std::stoi(strCopy));;
+		Helper::removeLeadingZeros(str);
+		Integer* intNumber = new Integer(std::stoi(str));;
 		intNumber->setIsTemp(true);
 		return intNumber;
 	}
 
-	else if (Helper::isBoolean(strCopy))
+	else if (Helper::isBoolean(str))
 	{
-		bool boolValue = (strCopy == "True") ? true : false;
+		bool boolValue = (str == "True") ? true : false;
 		Boolean* boolObject = new Boolean(boolValue);
 		boolObject->setIsTemp(true);
 		return boolObject;
 	}
 
-	else if (Helper::isString(strCopy))
+	else if (Helper::isString(str))
 	{
 		// String with "" on the two sides
-		if (strCopy[0] == '"' && strCopy[strCopy.length() - 1] == '"')
+		if (str[0] == '"' && str[str.length() - 1] == '"')
 		{
 			int quotesCount = 0;
 
-			for (char letter : strCopy)
+			for (char letter : str)
 			{
 				if (letter == '"')
 				{
@@ -78,22 +77,22 @@ Type* Parser::getType(std::string str)
 			if (quotesCount == 2)
 			{
 				// Replacing the "" with ''
-				int quoteIndex = strCopy.find('"');
-				strCopy[quoteIndex] = '\''; 
-				quoteIndex = strCopy.find('"');
-				strCopy[quoteIndex] = '\'';
+				int quoteIndex = str.find('"');
+				str[quoteIndex] = '\''; 
+				quoteIndex = str.find('"');
+				str[quoteIndex] = '\'';
 
-				String* stringObject = new String(strCopy);
+				String* stringObject = new String(str);
 				stringObject->setIsTemp(true);
 				return stringObject;
 			}
 		}
 
-		else if ((strCopy[0] == '\'' && strCopy[strCopy.length() - 1] == '\''))
+		else if ((str[0] == '\'' && str[str.length() - 1] == '\''))
 		{
 			int quotesCount = 0;
 
-			for (char letter : strCopy)
+			for (char letter : str)
 			{
 				if (letter == '\'')
 				{
@@ -104,7 +103,7 @@ Type* Parser::getType(std::string str)
 			// If there are only the '' for the two sides of the string and non in the middle
 			if (quotesCount == 2)
 			{
-				String* stringObject = new String(strCopy);
+				String* stringObject = new String(str);
 				stringObject->setIsTemp(true);
 				return stringObject;
 			}
@@ -139,7 +138,7 @@ bool Parser::makeAssignment(std::string str)
 {
 	bool isEqualsFound = str.find("=") != std::string::npos ? true : false; // Checking if str is a variable assignment
 	bool isAssignment = false;
-	Type* variableType = nullptr; // Variable to hold the found type of the variable in the str
+	Type* variable = nullptr; // Variable to hold the found type of the variable in the str
 
 	// Only if the str is a variable assignment continue to assigning
 	if (isEqualsFound)
@@ -158,22 +157,47 @@ bool Parser::makeAssignment(std::string str)
 		}
 
 		// Getting the type of the variable and allocating it on the heap if is a legal type
-		variableType = getType(variableValue); 
-		if (!variableType) // Incase of an illegal type, throw exception
+		variable = getType(variableValue);
+
+		// Incase of an illegal type, checking for an already existing var assignment
+		if (!variable)
 		{
-			throw SyntaxException();
+			// Checking if the assignment is towards another already existing variable
+			if (isExistingVar(variableValue))
+			{
+				// Checking if the assigning name already exists
+				if (isExistingVar(variableName))
+				{
+					delete _variables.at(variableName);
+					_variables.erase(variableName);
+				}
+
+				variable = getVariableValue(variableValue);
+				variable = getType(variable->toString());
+				variable->setIsTemp(false); // The variable we are assigning isn't a temporary one
+				_variables.insert({ variableName, variable });
+				return true;
+			}
+
+			else
+			{
+				throw NameErrorException(variableValue);
+			}
 		}
+		
+		variable->setIsTemp(false); // The variable we are assigning isn't a temporary one
 
 		// All checks passed and is a legal assignment sentence, insert the variable to the variables unordered_map
 		// If the variable doesn't already exist
 		if (_variables.find(variableName) == _variables.end())
 		{
-			_variables.insert({ variableName, variableType });
+			_variables.insert({ variableName, variable});
 		}
 
 		else
 		{
-			_variables.at(variableName) = variableType;
+			delete _variables.at(variableName); // Deleting old value object
+			_variables.at(variableName) = variable;
 		}
 
 		// The variable assignment was a success
@@ -181,6 +205,11 @@ bool Parser::makeAssignment(std::string str)
 	}
 
 	return isAssignment;
+}
+
+bool Parser::isExistingVar(std::string str)
+{
+	return _variables.find(str) != _variables.end() ? true : false;
 }
 
 Type* Parser::getVariableValue(std::string str)

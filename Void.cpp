@@ -11,5 +11,5 @@ bool Void::isPrintable() const
 
 std::string Void::toString() const
 {
-	return "Void";
+	return "Black Mesa - Gordon Freeman, Subnutica 2 when?, Terraria 1.4.5 yippe!!!!, Void? Void from TDX?";
 }
