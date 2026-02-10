@@ -54,5 +54,7 @@ int main(int argc,char **argv)
 		std::getline(std::cin, input_string);
 	}
 
+	Parser::cleanAllocatedVariables();
+
 	return 0;
 }

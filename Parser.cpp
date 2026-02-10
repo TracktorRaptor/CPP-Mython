@@ -198,4 +198,12 @@ Type* Parser::getVariableValue(std::string str)
 	return variable;
 }
 
+void Parser::cleanAllocatedVariables()
+{
+	for (auto it : _variables)
+	{
+		delete it.second;
+	}
+}
+
 

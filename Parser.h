@@ -20,6 +20,7 @@ class Parser
 public:
     static Type* parseString(std::string str);
     static Type* getType(std::string str);
+    static void cleanAllocatedVariables();
 
 private:
     static std::unordered_map<std::string, Type*> _variables;
@@ -27,5 +28,4 @@ private:
     static bool isLegalVarName(std::string str);
     static bool makeAssignment(std::string str);
     static Type* getVariableValue(std::string str);
-
 };
