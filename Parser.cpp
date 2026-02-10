@@ -15,8 +15,6 @@ Type* Parser::parseString(std::string str)
 		throw IndentationException();
 	}
 
-	type = getVariableValue(str);
-
 	type = getType(str);
 	if (!type)
 	{
@@ -28,7 +26,12 @@ Type* Parser::parseString(std::string str)
 
 		else
 		{
-			throw SyntaxException();
+			type = getVariableValue(str);
+
+			if (!type)
+			{
+				throw SyntaxException();
+			}
 		}		
 	}
 
@@ -163,7 +166,7 @@ bool Parser::makeAssignment(std::string str)
 
 		// All checks passed and is a legal assignment sentence, insert the variable to the variables unordered_map
 		// If the variable doesn't already exist
-		if (_variables.find(variableName) != _variables.end())
+		if (_variables.find(variableName) == _variables.end())
 		{
 			_variables.insert({ variableName, variableType });
 		}
