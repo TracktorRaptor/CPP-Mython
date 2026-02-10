@@ -8,17 +8,20 @@
 
 using std::cout;
 using std::endl;
+using std::cin;
+
+std::unordered_map<std::string, Type*> Parser::_variables;
 
 int main(int argc,char **argv)
 {
-	std::cout << WELCOME << YOUR_NAME << std::endl;
+	cout << WELCOME << YOUR_NAME << " :D" << endl;
 
 	std::string input_string = "";
 	Type* type = nullptr;
 
 	// get new command from user
-	std::cout << ">>> ";
-	std::getline(std::cin, input_string);
+	cout << ">>> ";
+	std::getline(cin, input_string);
 	
 	while (input_string != "quit()")
 	{
@@ -29,7 +32,7 @@ int main(int argc,char **argv)
 		}
 		catch (std::exception& e)
 		{
-			std::cout << e.what();
+			cout << e.what();
 		}
 
 		if (type)
@@ -37,7 +40,6 @@ int main(int argc,char **argv)
 			if (type->isPrintable())
 			{
 				cout << type->toString() << endl;
-				cout << sizeof(*type) << endl; // Seeing the byte size of the object created
 			}
 
 			if (type->getIsTemp())

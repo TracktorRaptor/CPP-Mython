@@ -1,7 +1,6 @@
 #include "Parser.h"
 #include <iostream>
 
-
 Type* Parser::parseString(std::string str)
 {
 	Type* type = nullptr;
@@ -19,42 +18,50 @@ Type* Parser::parseString(std::string str)
 	type = getType(str);
 	if (!type)
 	{
-		throw SyntaxException();
+		if (makeAssignment(str))
+		{
+			Void* variable = new Void();
+			variable->setIsTemp(true);
+		}
+
+		else
+		{
+			throw SyntaxException();
+		}		
 	}
 
 	return type;
 }
 
-Type* Parser::getType(std::string& str)
+Type* Parser::getType(std::string str)
 {
-	if (Helper::isInteger(str))
+	std::string strCopy = str;
+	Helper::trim(strCopy);
+
+	if (Helper::isInteger(strCopy))
 	{
-		Helper::trim(str);
-		Helper::removeLeadingZeros(str);
-		Integer* intNumber = new Integer(std::stoi(str));;
+		Helper::removeLeadingZeros(strCopy);
+		Integer* intNumber = new Integer(std::stoi(strCopy));;
 		intNumber->setIsTemp(true);
 		return intNumber;
 	}
 
-	else if (Helper::isBoolean(str))
+	else if (Helper::isBoolean(strCopy))
 	{
-		Helper::trim(str);
-		bool boolValue = (str == "True") ? true : false;
+		bool boolValue = (strCopy == "True") ? true : false;
 		Boolean* boolObject = new Boolean(boolValue);
 		boolObject->setIsTemp(true);
 		return boolObject;
 	}
 
-	else if (Helper::isString(str))
+	else if (Helper::isString(strCopy))
 	{
-		Helper::trim(str);
-
 		// String with "" on the two sides
-		if (str[0] == '"' && str[str.length() - 1] == '"')
+		if (strCopy[0] == '"' && strCopy[strCopy.length() - 1] == '"')
 		{
 			int quotesCount = 0;
 
-			for (char letter : str)
+			for (char letter : strCopy)
 			{
 				if (letter == '"')
 				{
@@ -66,22 +73,22 @@ Type* Parser::getType(std::string& str)
 			if (quotesCount == 2)
 			{
 				// Replacing the "" with ''
-				int quoteIndex = str.find('"');
-				str[quoteIndex] = '\''; 
-				quoteIndex = str.find('"');
-				str[quoteIndex] = '\'';
+				int quoteIndex = strCopy.find('"');
+				strCopy[quoteIndex] = '\''; 
+				quoteIndex = strCopy.find('"');
+				strCopy[quoteIndex] = '\'';
 
-				String* stringObject = new String(str);
+				String* stringObject = new String(strCopy);
 				stringObject->setIsTemp(true);
 				return stringObject;
 			}
 		}
 
-		else if ((str[0] == '\'' && str[str.length() - 1] == '\''))
+		else if ((strCopy[0] == '\'' && strCopy[strCopy.length() - 1] == '\''))
 		{
 			int quotesCount = 0;
 
-			for (char letter : str)
+			for (char letter : strCopy)
 			{
 				if (letter == '\'')
 				{
@@ -92,7 +99,7 @@ Type* Parser::getType(std::string& str)
 			// If there are only the '' for the two sides of the string and non in the middle
 			if (quotesCount == 2)
 			{
-				String* stringObject = new String(str);
+				String* stringObject = new String(strCopy);
 				stringObject->setIsTemp(true);
 				return stringObject;
 			}
@@ -123,14 +130,57 @@ bool Parser::isLegalVarName(std::string str)
 	return true;
 }
 
-//bool Parser::makeAssignment(std::string str)
-//{
-//	return false;
-//}
-//
-//Type* Parser::getVariableValue(std::string str)
-//{
-//	return nullptr;
-//}
+bool Parser::makeAssignment(std::string str)
+{
+	bool isEqualsFound = str.find("=") != std::string::npos ? true : false; // Checking if str is a variable assignment
+	bool isAssignment = false;
+	Type* variableType = nullptr; // Variable to hold the found type of the variable in the str
+
+	// Only if the str is a variable assignment continue to assigning
+	if (isEqualsFound)
+	{
+		// Getting the variable name and value
+		std::string variableName = str.substr(0, str.find("=") - 1);
+		std::string variableValue = str.substr(str.find("=") + 1, str.length() - 1);
+
+		Helper::ltrim(variableName); // Triming the excess spaces at the end of the name
+		Helper::trim(variableValue); // Triming the excess spaces at the begining and end of the value
+
+		// Checking if the name is legal, if not - throw exception
+		if (!isLegalVarName(variableName))
+		{
+			throw SyntaxException();
+		}
+
+		// Getting the type of the variable and allocating it on the heap if is a legal type
+		variableType = getType(variableValue); 
+		if (!variableType) // Incase of an illegal type, throw exception
+		{
+			throw SyntaxException();
+		}
+
+		// All checks passed and is a legal assignment sentence, insert the variable to the variables unordered_map
+		// If the variable doesn't already exist
+		if (_variables.find(variableName) != _variables.end())
+		{
+			_variables.insert({ variableName, variableType });
+		}
+
+		else
+		{
+			_variables.at(variableName) = variableType;
+		}
+
+		// The variable assignment was a sucess
+		isAssignment = true;
+	}
+
+	return isAssignment;
+}
+
+Type* Parser::getVariableValue(std::string str)
+{
+	return nullptr;
+}
 
 

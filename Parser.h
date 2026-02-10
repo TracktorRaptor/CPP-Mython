@@ -7,6 +7,7 @@
 #include "Integer.h"
 #include "Boolean.h"
 #include "String.h"
+#include "Void.h"
 #include <string>
 #include <unordered_map>
 #include <iostream>
@@ -17,10 +18,10 @@ class Parser
 {
 public:
     static Type* parseString(std::string str);
-    static Type* getType(std::string& str);
+    static Type* getType(std::string str);
 
 private:
-    static std::unordered_map<std::string, Type> _variables;
+    static std::unordered_map<std::string, Type*> _variables;
 
     static bool isLegalVarName(std::string str);
     static bool makeAssignment(std::string str);
