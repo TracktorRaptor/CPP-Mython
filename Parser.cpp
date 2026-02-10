@@ -144,10 +144,10 @@ bool Parser::makeAssignment(std::string str)
 	if (isEqualsFound)
 	{
 		// Getting the variable name and value
-		std::string variableName = str.substr(0, str.find("=") - 1);
-		std::string variableValue = str.substr(str.find("=") + 1, str.length() - 1);
+		std::string variableName = str.substr(0, str.find("="));
+		std::string variableValue = str.substr(str.find("=") + 1, str.length()-str.find("=")-1);
 
-		Helper::ltrim(variableName); // Triming the excess spaces at the end of the name
+		Helper::rtrim(variableName); // Triming the excess spaces at the end of the name
 		Helper::trim(variableValue); // Triming the excess spaces at the begining and end of the value
 
 		// Checking if the name is legal, if not - throw exception
