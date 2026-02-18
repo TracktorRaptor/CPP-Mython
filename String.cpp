@@ -1,8 +1,8 @@
 #include "String.h"
 
-String::String(const std::string value)
+String::String(const std::string& str)
 {
-	this->_value = value;
+	this->_value = str;
 }
 
 bool String::isPrintable() const

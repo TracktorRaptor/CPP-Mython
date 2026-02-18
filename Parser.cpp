@@ -5,6 +5,8 @@ Type* Parser::parseString(std::string str)
 {
 	Type* type = nullptr;
 
+	// add check for empty string (just enter without anything)
+
 	if (str[0] == '\t')
 	{
 		throw IndentationException();
@@ -57,7 +59,10 @@ Type* Parser::getType(std::string str)
 		boolObject->setIsTemp(true);
 		return boolObject;
 	}
+	
 
+	// UPDATE STRING LOGIC TO NOT CHANGE "" WHEN THERE IS BOTH "" AND '' INSIDE SAME STRING ("AWFAW''AWFAW")
+	// UPDATE SO "awa" "aba" -> 'awaaba'
 	else if (Helper::isString(str))
 	{
 		// String with "" on the two sides
@@ -107,6 +112,101 @@ Type* Parser::getType(std::string str)
 				stringObject->setIsTemp(true);
 				return stringObject;
 			}
+		}
+	}
+
+	// The variable is a list
+	else if (str[0] == '[' && str[str.length() - 1] == ']')
+	{
+		bool ignoreComma = false; // If we are reading from a list/string/etc which have commas that we want to ignore
+		bool QuatationString = false; // String variable starts with "
+		bool ApostropheString = false;	  // String variable starts with '
+		std::string curVarStr = ""; // Holds the current variable from the gotten string as a string
+		Type* curVar = nullptr;
+		std::deque<Type*> listVariables;
+		int curIndex = 0;
+		char letter = ' ';
+
+		for (curIndex = 0; curIndex < str.length()-1; ++curIndex)
+		{	
+			letter = str[curIndex];
+
+			// String literal detection
+			if (letter == '\'' || letter == '"')
+			{
+				// Aphostrophe - '' string literal
+				if (letter == '\'')
+				{
+					if (!ApostropheString && !QuatationString)
+					{
+						ApostropheString = true;
+						ignoreComma = true;
+					}
+
+					else if (ApostropheString && !QuatationString)
+					{
+						ApostropheString = false;
+						ignoreComma = false;
+					}
+				}
+
+				// Quatation - "" string literal
+				else
+				{
+					if (!ApostropheString && !QuatationString)
+					{
+						QuatationString = true;
+						ignoreComma = true;
+					}
+
+					else if (!ApostropheString && QuatationString)
+					{
+						QuatationString = false;
+						ignoreComma = false;
+					}
+				}
+			}
+
+			if (letter == '[' /*|| letter == '('*/ && !ignoreComma)
+			{
+				ignoreComma = true;
+			}
+
+			else if (letter == ']' /*|| letter == ')'*/ && ignoreComma)
+			{
+				ignoreComma = false;
+			}
+
+			// Adding another letter from the variable/object literal name
+			if (letter != ',' || ignoreComma)
+			{
+				curVarStr += letter;
+			}
+			
+			// Add the found variable to the variables deque
+			if (letter == ',' && !ignoreComma)
+			{
+				Helper::trim(curVarStr); // Removing excess spaces if any
+				curVar = getType(curVarStr); // Checking if the current variable is an object literal
+				if (!curVar) // The variable isn't an object literal, checking referencing to existing objects
+				{
+					try
+					{
+						curVar = getType(_variables.at(curVarStr)->toString());
+						listVariables.push_back(curVar);
+					}
+					// If entered, the current variable is invalid
+					catch (...)
+					{
+						listVariables.clear(); // Deleting all objects created
+						throw NameErrorException(curVarStr);
+					}
+				}
+
+				continue; // Skip the comma adding
+			}
+			
+			curVarStr += letter;
 		}
 	}
 
