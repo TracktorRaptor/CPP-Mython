@@ -123,11 +123,12 @@ Type* Parser::getType(std::string str)
 		bool ApostropheString = false;	  // String variable starts with '
 		std::string curVarStr = ""; // Holds the current variable from the gotten string as a string
 		Type* curVar = nullptr;
+		List* list = nullptr;
 		std::deque<Type*> listVariables;
 		int curIndex = 0;
 		char letter = ' ';
 
-		for (curIndex = 0; curIndex < str.length()-1; ++curIndex)
+		for (curIndex = 1; curIndex < str.length(); ++curIndex)
 		{	
 			letter = str[curIndex];
 
@@ -176,15 +177,9 @@ Type* Parser::getType(std::string str)
 			{
 				ignoreComma = false;
 			}
-
-			// Adding another letter from the variable/object literal name
-			if (letter != ',' || ignoreComma)
-			{
-				curVarStr += letter;
-			}
 			
 			// Add the found variable to the variables deque
-			if (letter == ',' && !ignoreComma)
+			if ((letter == ',' && !ignoreComma) || curIndex == str.length()-1)
 			{
 				Helper::trim(curVarStr); // Removing excess spaces if any
 				curVar = getType(curVarStr); // Checking if the current variable is an object literal
@@ -194,6 +189,8 @@ Type* Parser::getType(std::string str)
 					{
 						curVar = getType(_variables.at(curVarStr)->toString());
 						listVariables.push_back(curVar);
+						curVar = nullptr;
+						curVarStr = "";
 					}
 					// If entered, the current variable is invalid
 					catch (...)
@@ -203,11 +200,25 @@ Type* Parser::getType(std::string str)
 					}
 				}
 
+				else
+				{
+					listVariables.push_back(curVar);
+					curVar = nullptr;
+					curVarStr = "";
+				}
+
 				continue; // Skip the comma adding
 			}
-			
-			curVarStr += letter;
+
+			// Adding another letter from the variable/object literal name
+			if (letter != ',' || ignoreComma)
+			{
+				curVarStr += letter;
+			}
 		}
+
+		list = new List(listVariables);
+		return list;
 	}
 
 	return nullptr;
