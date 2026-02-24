@@ -1,5 +1,5 @@
 #include "Helper.h"
-
+#include <iostream>
 
 bool Helper::isInteger(const std::string& s)
 {
@@ -23,13 +23,12 @@ bool Helper::isBoolean(const std::string& s)
 
 bool Helper::isString(const std::string& s)
 {
-	size_t end = s.size() - 1;
-
-	if (s[0] == '\"' && end == s.find('\"', 1))
+	if (s[0] == '"' && s[s.length()-1] == '"')
 	{
 		return true;
 	}
-	if (s[0] == '\'' && end == s.find('\'', 1))
+
+	if (s[0] == '\'' && s[s.length()-1] == '\'')
 	{
 		return true;
 	}

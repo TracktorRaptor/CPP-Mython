@@ -63,7 +63,7 @@ Type* Parser::getType(std::string str)
 	else if (Helper::isString(str))
 	{
 		std::string optimizedString = "";
-		bool inTheString = false; // Used to remove excess spaces and optimize the inputted string
+		bool inTheString = true; // Used to remove excess spaces and optimize the inputted string - true by defualt
 		int curIndex = 0;
 		char curLetter = ' ';
 
@@ -102,8 +102,8 @@ Type* Parser::getType(std::string str)
 			if (!containsApostrophe)
 			{
 				// Replacing the "" with ''
-				str[str.find('"')] = '\'';
-				str[str.find('"')] = '\'';
+				optimizedString[optimizedString.find('"')] = '\'';
+				optimizedString[optimizedString.find('"')] = '\'';
 			}
 
 			String* stringObject = new String(optimizedString);
