@@ -60,58 +60,90 @@ Type* Parser::getType(std::string str)
 		return boolObject;
 	}
 	
-
-	// UPDATE STRING LOGIC TO NOT CHANGE "" WHEN THERE IS BOTH "" AND '' INSIDE SAME STRING ("AWFAW''AWFAW")
-	// UPDATE SO "awa" "aba" -> 'awaaba'
 	else if (Helper::isString(str))
 	{
-		// String with "" on the two sides
+		std::string optimizedString = "";
+		bool inTheString = false; // Used to remove excess spaces and optimize the inputted string
+		int curIndex = 0;
+		char curLetter = ' ';
+
+		// Quatation string - string with "" on both sides
 		if (str[0] == '"' && str[str.length() - 1] == '"')
 		{
-			int quotesCount = 0;
+			optimizedString = "\""; // Adding a " to the start of the string and skipping it in the loop later
+			bool containsApostrophe = str.find('\'') != std::string::npos ? true : false;
 
-			for (char letter : str)
+			// Skipping the first " and the last "
+			for (curIndex = 1; curIndex < str.length()-1; ++curIndex)
 			{
-				if (letter == '"')
+				curLetter = str[curIndex];
+				if (curLetter == '"') // Found a Quatation
 				{
-					quotesCount++;
+					if (!inTheString) // Getting into the string
+					{
+						inTheString = true;
+					}
+					
+					else // Getting out of the string
+					{
+						inTheString = false;
+					}
+				}
+
+				if (inTheString && curLetter != '"')
+				{
+					optimizedString += curLetter;
 				}
 			}
 
-			// If there are only the "" for the two sides of the string and non in the middle
-			if (quotesCount == 2)
+			optimizedString.push_back('"'); // Adding a " at the back
+
+			// Replacing the "" With '' if the string doesn't have ' in the middle
+			if (!containsApostrophe)
 			{
 				// Replacing the "" with ''
-				int quoteIndex = str.find('"');
-				str[quoteIndex] = '\''; 
-				quoteIndex = str.find('"');
-				str[quoteIndex] = '\'';
-
-				String* stringObject = new String(str);
-				stringObject->setIsTemp(true);
-				return stringObject;
+				str[str.find('"')] = '\'';
+				str[str.find('"')] = '\'';
 			}
+
+			String* stringObject = new String(optimizedString);
+			stringObject->setIsTemp(true);
+			return stringObject;
 		}
 
+		// Apostrophe string - string with '' on both sides
 		else if ((str[0] == '\'' && str[str.length() - 1] == '\''))
 		{
-			int quotesCount = 0;
+			optimizedString = "'"; // Adding a ' to the start of the string and skipping it in the loop later
 
-			for (char letter : str)
+			// Skipping the first ' and the last '
+			for (curIndex = 1; curIndex < str.length()-1; ++curIndex)
 			{
-				if (letter == '\'')
+				curLetter = str[curIndex];
+				if (curLetter == '\'') // Found a Apostrophe
 				{
-					quotesCount++;
+					if (!inTheString) // Getting into the string
+					{
+						inTheString = true;
+					}
+
+					else // Getting out of the string
+					{
+						inTheString = false;
+					}
+				}
+
+				if (inTheString && curLetter != '\'')
+				{
+					optimizedString += curLetter;
 				}
 			}
 
-			// If there are only the '' for the two sides of the string and non in the middle
-			if (quotesCount == 2)
-			{
-				String* stringObject = new String(str);
-				stringObject->setIsTemp(true);
-				return stringObject;
-			}
+			optimizedString.push_back('\''); // Adding a " at the back
+
+			String* stringObject = new String(optimizedString);
+			stringObject->setIsTemp(true);
+			return stringObject;
 		}
 	}
 
@@ -126,17 +158,17 @@ Type* Parser::getType(std::string str)
 		List* list = nullptr;
 		std::deque<Type*> listVariables;
 		int curIndex = 0;
-		char letter = ' ';
+		char curLetter = ' ';
 
 		for (curIndex = 1; curIndex < str.length(); ++curIndex)
 		{	
-			letter = str[curIndex];
+			curLetter = str[curIndex];
 
 			// String literal detection
-			if (letter == '\'' || letter == '"')
+			if (curLetter == '\'' || curLetter == '"')
 			{
 				// Aphostrophe - '' string literal
-				if (letter == '\'')
+				if (curLetter == '\'')
 				{
 					if (!ApostropheString && !QuatationString)
 					{
@@ -168,22 +200,29 @@ Type* Parser::getType(std::string str)
 				}
 			}
 
-			if (letter == '[' /*|| letter == '('*/ && !ignoreComma)
+			if (curLetter == '[' /*|| letter == '('*/ && !ignoreComma)
 			{
 				ignoreComma = true;
 			}
 
-			else if (letter == ']' /*|| letter == ')'*/ && ignoreComma)
+			else if (curLetter == ']' /*|| letter == ')'*/ && ignoreComma)
 			{
 				ignoreComma = false;
 			}
 			
 			// Add the found variable to the variables deque
-			if ((letter == ',' && !ignoreComma) || curIndex == str.length()-1)
+			if ((curLetter == ',' && !ignoreComma) || curIndex == str.length()-1)
 			{
 				Helper::trim(curVarStr); // Removing excess spaces if any
 				curVar = getType(curVarStr); // Checking if the current variable is an object literal
-				if (!curVar) // The variable isn't an object literal, checking referencing to existing objects
+				if (curVar) 
+				{
+					listVariables.push_back(curVar);
+					curVar = nullptr;
+					curVarStr = "";
+				}
+
+				else if (!curVar) // The variable isn't an object literal, checking referencing to existing objects
 				{
 					try
 					{
@@ -200,20 +239,13 @@ Type* Parser::getType(std::string str)
 					}
 				}
 
-				else
-				{
-					listVariables.push_back(curVar);
-					curVar = nullptr;
-					curVarStr = "";
-				}
-
 				continue; // Skip the comma adding
 			}
 
 			// Adding another letter from the variable/object literal name
-			if (letter != ',' || ignoreComma)
+			if (curLetter != ',' || ignoreComma)
 			{
-				curVarStr += letter;
+				curVarStr += curLetter;
 			}
 		}
 
