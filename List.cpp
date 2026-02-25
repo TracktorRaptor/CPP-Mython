@@ -12,5 +12,20 @@ bool List::isPrintable() const
 
 std::string List::toString() const
 {
-	return std::string();
+	std::string listString = "[";
+
+	// Incase of empty list
+	if (this->variables.empty())
+	{
+		return "[]";
+	}
+
+	for (const auto& it : this->variables)
+	{
+		listString += it->toString() + ", ";
+	}
+
+	listString[listString.length()-2] = ']';
+	listString.pop_back();
+	return listString;
 }

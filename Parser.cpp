@@ -150,13 +150,22 @@ Type* Parser::getType(std::string str)
 	// The variable is a list
 	else if (str[0] == '[' && str[str.length() - 1] == ']')
 	{
+		List* list = nullptr;
+		std::deque<Type*> listVariables; // a deque to hold the list's variables
+
+		// Case of an empty list - skip all list code below
+		if (str == "[]")
+		{	
+			list = new List(listVariables);
+			list->setIsTemp(true);
+			return list;
+		}
+
 		bool ignoreComma = false; // If we are reading from a list/string/etc which have commas that we want to ignore
 		bool QuatationString = false; // String variable starts with "
 		bool ApostropheString = false;	  // String variable starts with '
 		std::string curVarStr = ""; // Holds the current variable from the gotten string as a string
 		Type* curVar = nullptr;
-		List* list = nullptr;
-		std::deque<Type*> listVariables;
 		int curIndex = 0;
 		char curLetter = ' ';
 
@@ -250,6 +259,7 @@ Type* Parser::getType(std::string str)
 		}
 
 		list = new List(listVariables);
+		list->setIsTemp(true);
 		return list;
 	}
 
