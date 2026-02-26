@@ -1,5 +1,4 @@
 #include "Parser.h"
-#include <iostream>
 
 Type* Parser::parseString(std::string str)
 {
@@ -60,6 +59,7 @@ Type* Parser::getType(std::string str)
 		return boolObject;
 	}
 	
+
 	else if (Helper::isString(str))
 	{
 		std::string optimizedString = "";
@@ -164,6 +164,7 @@ Type* Parser::getType(std::string str)
 		bool ignoreComma = false; // If we are reading from a list/string/etc which have commas that we want to ignore
 		bool QuatationString = false; // String variable starts with "
 		bool ApostropheString = false;	  // String variable starts with '
+		bool inListTuple = false;		 // Check to disable string checks
 		std::string curVarStr = ""; // Holds the current variable from the gotten string as a string
 		Type* curVar = nullptr;
 		int curIndex = 0;
@@ -174,7 +175,7 @@ Type* Parser::getType(std::string str)
 			curLetter = str[curIndex];
 
 			// String literal detection
-			if (curLetter == '\'' || curLetter == '"')
+			if (curLetter == '\'' || curLetter == '"' && !inListTuple)
 			{
 				// Aphostrophe - '' string literal
 				if (curLetter == '\'')
@@ -209,14 +210,16 @@ Type* Parser::getType(std::string str)
 				}
 			}
 
-			if (curLetter == '[' /*|| letter == '('*/ && !ignoreComma)
+			else if (curLetter == '[' /*|| letter == '('*/ && !ignoreComma)
 			{
 				ignoreComma = true;
+				inListTuple = true;
 			}
 
 			else if (curLetter == ']' /*|| letter == ')'*/ && ignoreComma)
 			{
 				ignoreComma = false;
+				inListTuple = false;
 			}
 			
 			// Add the found variable to the variables deque
@@ -226,6 +229,7 @@ Type* Parser::getType(std::string str)
 				curVar = getType(curVarStr); // Checking if the current variable is an object literal
 				if (curVar) 
 				{
+					curVar->setIsTemp(false);
 					listVariables.push_back(curVar);
 					curVar = nullptr;
 					curVarStr = "";
@@ -299,6 +303,7 @@ bool Parser::makeAssignment(std::string str)
 		// Getting the variable name and value
 		std::string variableName = str.substr(0, str.find("="));
 		std::string variableValue = str.substr(str.find("=") + 1, str.length()-str.find("=")-1);
+		std::string variableString = "";
 
 		Helper::rtrim(variableName); // Triming the excess spaces at the end of the name
 		Helper::trim(variableValue); // Triming the excess spaces at the begining and end of the value
@@ -332,6 +337,14 @@ bool Parser::makeAssignment(std::string str)
 				}
 
 				variable = getVariableValue(variableValue);
+
+				// List assignment gives the pointer to that list and not a copy
+				if (variable->toString()[0] == '[')
+				{
+					_variables.insert({ variableName, variable });
+					return true; // Skip the copy creation
+				}
+
 				variable = getType(variable->toString());
 				variable->setIsTemp(false); // The variable we are assigning isn't a temporary one
 				_variables.insert({ variableName, variable });

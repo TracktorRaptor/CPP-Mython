@@ -10,6 +10,14 @@ using std::cout;
 using std::endl;
 using std::cin;
 
+/*
+Notes for one's self - To do:
+1. String - Add edge case for invalid string - " (only one quote)
+2. Change ints so a really big number could work - 999999999999999999999999999999999999999999999999999 for example
+3. Add indentations
+4. 
+*/
+
 std::unordered_map<std::string, Type*> Parser::_variables;
 
 int main(int argc,char **argv)
